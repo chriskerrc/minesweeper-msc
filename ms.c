@@ -3,7 +3,7 @@
 //#define NDEBUG
 #include <assert.h>
 
-// REMEMBER TO TURN FLAGS IN MAKEFILE BACK ON!
+
 
 // Maybe some of your own function prototypes here
 int num_char(unsigned width, unsigned height, unsigned len);
@@ -54,8 +54,8 @@ int num_char(unsigned width, unsigned height, unsigned len)
 int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1])
 {
    // Ensure only characters are from the set:   012345678?X
-   int cnt = 0; 
-   for(int i = 0; i < len; i++){
+   unsigned cnt = 0; 
+   for(unsigned i = 0; i < len; i++){
       if(isalpha(inp[i]) != 0 && inp[i] != 'X'){
          cnt++;
       }      
@@ -80,8 +80,8 @@ else{
 int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
 {
 // Ensure mines in string <= totmines
-   int cnt = 0;
-   for(int i = 0; i < len + 1; i++){
+   unsigned cnt = 0;
+   for(unsigned i = 0; i < len + 1; i++){
       if(inp[i] == 'X'){
          cnt++;
       }
@@ -158,24 +158,4 @@ void test(void)
    assert(syntax_check(3, 5, 5, inp)==false);   
 }
 
-/*
-for(int i = 0; i < len + 1; i++){
-      if(isdigit(inp[i]) != 0 && inp[i] == '9'){
-         return false;
-      }
-      if(inp[i] == 'l'){
-         return false;
-      }      
-      if(ispunct(inp[i]) != 0 && inp[i] != '?'){
-         return false;
-      }
-      if(isgraph(inp[i]) != 0){
-         return false;
-      }
-      if(isdigit(inp[i]) != 0 && inp[i] == '9'){
-         return false;
-      }
-
-   } 
-*/
 
