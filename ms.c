@@ -8,14 +8,23 @@
 // Maybe some of your own function prototypes here
 int num_char(unsigned width, unsigned height, unsigned len);
 int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1]);
-int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1]);
-/*
+int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1]);
+unsigned num_mines_b(unsigned width, unsigned height, board b);
+
 board solve_board(board b)
 {
 
+unsigned width = b.w; 
+unsigned height = b.h; 
+unsigned totmines = b.totmines;
+   
+   if(num_mines_b(width, height, b)==totmines){
+      printf("Mines in string = total mines\n");
+   }
+  
+return b;
 }
 
-*/
 void board2str(char s[MAXSQ*MAXSQ+1], board b)
 {
 int width = b.w;
@@ -28,20 +37,18 @@ int k = 0;
          k++;
       }
    }
-
-//print string to visually verify 
-
+printf("%s\n", s); //print string to eyeball it
 }
 
 
 bool syntax_check(unsigned totmines, unsigned width, unsigned height, char inp[MAXSQ*MAXSQ+1])
 {
 unsigned len = strlen(inp);
-int num_char_flag = num_char(width, height, len);
-int char_set_flag = char_set(len, inp);
-int num_mines_flag = num_mines(len, totmines, inp);
+int num_char_rtn = num_char(width, height, len);
+int char_set_rtn = char_set(len, inp);
+int num_mines_rtn = num_mines_str(len, totmines, inp);
 
-if(num_char_flag != 0 || char_set_flag != 0 || num_mines_flag != 0){
+if(num_char_rtn != 0 || char_set_rtn != 0 || num_mines_rtn != 0){
    return false;
    }
 else{
@@ -50,27 +57,26 @@ else{
 
 }
 
-board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1]) /* add assert testing on conversion from 1D string to array (split out into separate function) */
-{
+board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1]) /* split conversion from 1D string to 2D array into a separate function, then assert test it with expected values */
+{ //use unsigned int instead of int
 
 board b; 
 b.w = width; 
 b.h = height; 
 b.totmines = totmines;
 
-int k = 0; 
+int str_index = 0; 
 
-   for(int i = 0; i < height; i++){   
-      for(int j = 0; j < width; j++){ 
-         b.grid[(k-j)/width][k - i * width] = inp[k]; //convert 1D string into 2D array
-         k++;
+   for(int row = 0; row < height; row++){   
+      for(int col = 0; col < width; col++){ 
+         b.grid[(str_index - col)/width][str_index - row * width] = inp[str_index]; //convert 1D string into 2D array
+         str_index++;
       }
    }
 
-
-   for(int j = 0; j < height; j++){    
-      for(int i = 0; i < width; i++){ 
-         printf("%c", b.grid[j][i]);
+   for(int row = 0; row < height; row++){    
+      for(int col = 0; col < width; col++){ 
+         printf("%c", b.grid[row][col]);
       }
       printf("\n");
    }
@@ -118,7 +124,7 @@ else{
    } 
 }
 
-int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
+int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
 {
 // Ensure mines in string <= totmines
    unsigned cnt = 0;
@@ -135,49 +141,102 @@ int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
    }
 }
 
+unsigned num_mines_b(unsigned width, unsigned height, board b) //compares mines in board with totmines
+{
+unsigned cnt = 0;
+
+   for(unsigned row = 0; row < height; row++){    
+      for(unsigned col = 0; col < width; col++){   
+         if(b.grid[row][col] == MINE){
+            cnt++;
+         }
+      }
+   } 
+
+return cnt;
+}
 
 void test(void)
 {   
+   board b;
    char inp[MAXSQ*MAXSQ+1];
-   strcpy(inp, "11?010?011"); //too big
+   // Unknowns
+   strcpy(inp, "XXX?XX535XX303X?535XXX??X");
+   assert(syntax_check(16, 5, 5, inp)==true);
+   b = make_board(16, 5, 5, inp);
+   board2str(inp, b);
+   assert(strcmp(inp, "XXX?XX535XX303X?535XXX??X")==0);   
+
+   //too big
+   strcpy(inp, "11?010?011"); 
    assert(syntax_check(1, 3, 3, inp)==false);
+   
+   //right size
+   strcpy(inp, "11?0"); 
+   assert(syntax_check(1, 2, 2, inp)==true);
+   
+   // too many mines in string   
+   strcpy(inp, "11?0?X111l111X?11?11?X10?");   
+   assert(syntax_check(3, 5, 5, inp)==false); 
+   
+   //space char
+   strcpy(inp, "11? "); 
+   assert(syntax_check(1, 2, 2, inp)==false);
+   
+   //'9'
+   strcpy(inp, "119??X"); 
+   assert(syntax_check(1, 2, 3, inp)==false);
 
-   assert(num_char(2, 2, 4)==0); // length = width * height 
-   assert(num_char(3, 3, 4)==1); // length != width * height
+   //non-X letters
+   strcpy(inp, "119???wX"); 
+   assert(syntax_check(1, 2, 4, inp)==false);
+   
+   //null-char
+   strcpy(inp, "\0"); 
+   assert(syntax_check(1, 1, 1, inp)==false);
 
-   strcpy(inp, "Q11111l0X");
+   // length = width * height 
+   assert(num_char(2, 2, 4)==0); 
+   // length != width * height
+   assert(num_char(3, 3, 4)==1); 
+
+   //non-X letter
+   strcpy(inp, "Q11111l0X"); 
    assert(char_set(9, inp)==1);
 
+   //correct chars in string
    strcpy(inp, "???X11110");
    assert(char_set(9, inp)==0); 
 
+   //space in string
    strcpy(inp, " ");
    assert(char_set(1, inp)==1); 
    
+   //null char in string
    strcpy(inp, "\0");
    assert(char_set(1, inp)==1); 
 
+   //num mines in string == totmines
    strcpy(inp, "11111110X");
-   assert(num_mines(9, 1, inp)==0);
+   assert(num_mines_str(9, 1, inp)==0);
 
+   //num mines in string < totmines
    strcpy(inp, "1X1X1110X");
-   assert(num_mines(9, 4, inp)==0);
+   assert(num_mines_str(9, 4, inp)==0);
 
+   //num mines in string > totmines
    strcpy(inp, "1X1X1110X");
-   assert(num_mines(9, 2, inp)==1);
+   assert(num_mines_str(9, 2, inp)==1);     
 
-   strcpy(inp, "11?0"); //right size
-   assert(syntax_check(1, 2, 2, inp)==true);
-   //Invalid string (has an 'l' not a '1')
-   strcpy(inp, "l");
-   assert(syntax_check(1, 1, 1, inp)==false);
+   // num mines in board
+   strcpy(inp, "XXXXXX535XX303XX535XXXXXX");
+   assert(syntax_check(16, 5, 5, inp)==true);
+   b = make_board(16, 5, 5, inp);
+   b = solve_board(b);
+   board2str(inp, b);
+   assert(num_mines_b(5, 5, b)==16);
+   
+   
 
-    //Invalid string (has an 'l' not a '1')
-   strcpy(inp, "XXXXlX");
-   assert(syntax_check(1, 3, 2, inp)==false);
-
-   strcpy(inp, "11?0?X111l111X?11?11?X10?");     
-   assert(syntax_check(3, 5, 5, inp)==false);   
 }
-
 
