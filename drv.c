@@ -30,7 +30,7 @@ void driver(void)
    strcpy(str, "000000111001X100111000000");
    assert(syntax_check(1, 5, 5, str)==true);
    b = make_board(1, 5, 5, str);
- /*  //board2str(str, b);
+   board2str(str, b);
    assert(strcmp(str, "000000111001X100111000000")==0);
 
    // No unknowns
@@ -39,7 +39,7 @@ void driver(void)
    b = make_board(16, 5, 5, str);
    board2str(str, b);
    assert(strcmp(str, "XXXXXX535XX303XX535XXXXXX")==0);
-
+/* 
    // 1X1 mine
    strcpy(str, "X");
    assert(syntax_check(1, 1, 1, str)==true);

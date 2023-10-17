@@ -3,7 +3,7 @@
 //#define NDEBUG
 #include <assert.h>
 
-
+//remember to account for out of bounds
 
 // Maybe some of your own function prototypes here
 int num_char(unsigned width, unsigned height, unsigned len);
@@ -12,12 +12,27 @@ int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1]);
 /*
 board solve_board(board b)
 {
+
 }
 
+*/
 void board2str(char s[MAXSQ*MAXSQ+1], board b)
 {
+int width = b.w;
+int height = b.h; 
+
+int k = 0; 
+   for(int i = 0; i < height; i++){   
+      for(int j = 0; j < width; j++){ 
+         s[k] = b.grid[(k-j)/width][k - i * width];
+         k++;
+      }
+   }
+
+//print string to visually verify 
+
 }
-*/
+
 
 bool syntax_check(unsigned totmines, unsigned width, unsigned height, char inp[MAXSQ*MAXSQ+1])
 {
@@ -34,6 +49,36 @@ else{
    }
 
 }
+
+board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1]) /* add assert testing on conversion from 1D string to array (split out into separate function) */
+{
+
+board b; 
+b.w = width; 
+b.h = height; 
+b.totmines = totmines;
+
+int k = 0; 
+
+   for(int i = 0; i < height; i++){   
+      for(int j = 0; j < width; j++){ 
+         b.grid[(k-j)/width][k - i * width] = inp[k]; //convert 1D string into 2D array
+         k++;
+      }
+   }
+
+
+   for(int j = 0; j < height; j++){    
+      for(int i = 0; i < width; i++){ 
+         printf("%c", b.grid[j][i]);
+      }
+      printf("\n");
+   }
+   printf("\n");
+
+
+return b;
+} 
 
 int num_char(unsigned width, unsigned height, unsigned len)
 {
@@ -52,7 +97,7 @@ int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1])
    // Ensure only characters are from the set:   012345678?X
    unsigned cnt = 0; 
    for(unsigned i = 0; i < len; i++){
-      if(isalpha(inp[i]) != 0 && inp[i] != MINE){ //check that these hash defines work
+      if(isalpha(inp[i]) != 0 && inp[i] != MINE){
          cnt++;
       }      
       if(ispunct(inp[i]) != 0 && inp[i] != UNK){
@@ -91,39 +136,8 @@ int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
 }
 
 
-board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1]) 
-{
-
-board b; 
-b.w = width; 
-b.h = height; 
-b.totmines = totmines;
-
-int k = 0; 
-
-for (int i = 0; i < height; i++){   
-   for(int j = 0; j < width; j++){ 
-      b.grid[(k-j)/width][k - (i * width)] = inp[k]; //convert 1D string into 2D array
-      k++;
-   }
-}
-
-
-for (int j = 0; j < height; j++){    
-   for(int i = 0; i < width; i++){ 
-      printf("%c", b.grid[j][i]);
-   }
-   printf("\n");
-}
-printf("\n");
-
-
-return b;
-} 
-
 void test(void)
-{  
-   board b; 
+{   
    char inp[MAXSQ*MAXSQ+1];
    strcpy(inp, "11?010?011"); //too big
    assert(syntax_check(1, 3, 3, inp)==false);
@@ -164,10 +178,6 @@ void test(void)
 
    strcpy(inp, "11?0?X111l111X?11?11?X10?");     
    assert(syntax_check(3, 5, 5, inp)==false);   
-
-   //strcpy(inp, "00001001X");
-   //assert(syntax_check(1, 3, 3, inp)==true);
-   //b = make_board(1, 3, 3, inp);
 }
 
 
