@@ -10,7 +10,7 @@ int main(void)
 // Code so you can check your code gives the correct output
 void driver(void)
 {
-   //board b;
+   board b;
    char str[MAXSQ*MAXSQ+1];
 
    // syntax_check checks whether character count is correct & contains valid characters etc.
@@ -24,13 +24,13 @@ void driver(void)
    // Invalid string (has an 'l' not a '1')
    strcpy(str, "11?0?X111l111X?11?11?X10?");
    assert(syntax_check(3, 5, 5, str)==false);
-/*
+
 
    // No unknowns
    strcpy(str, "000000111001X100111000000");
    assert(syntax_check(1, 5, 5, str)==true);
    b = make_board(1, 5, 5, str);
-   board2str(str, b);
+ /*  //board2str(str, b);
    assert(strcmp(str, "000000111001X100111000000")==0);
 
    // No unknowns

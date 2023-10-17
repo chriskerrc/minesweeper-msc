@@ -26,10 +26,6 @@ int num_char_flag = num_char(width, height, len);
 int char_set_flag = char_set(len, inp);
 int num_mines_flag = num_mines(len, totmines, inp);
 
-//printf("num_char_flag %i\n", num_char_flag);
-//printf("char_set_flag %i\n", char_set_flag);
-//printf("num_mines_flag %i\n", num_mines_flag);
-
 if(num_char_flag != 0 || char_set_flag != 0 || num_mines_flag != 0){
    return false;
    }
@@ -56,10 +52,10 @@ int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1])
    // Ensure only characters are from the set:   012345678?X
    unsigned cnt = 0; 
    for(unsigned i = 0; i < len; i++){
-      if(isalpha(inp[i]) != 0 && inp[i] != 'X'){
+      if(isalpha(inp[i]) != 0 && inp[i] != MINE){ //check that these hash defines work
          cnt++;
       }      
-      if(ispunct(inp[i]) != 0 && inp[i] != '?'){
+      if(ispunct(inp[i]) != 0 && inp[i] != UNK){
          cnt++;
       }
       if(isgraph(inp[i]) == 0){
@@ -94,28 +90,40 @@ int num_mines(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
    }
 }
 
-/*
-board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1])
+
+board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1]) 
 {
 
-board b; //rearrange 
-b.h = height; //rearrange
+board b; 
+b.w = width; 
+b.h = height; 
+b.totmines = totmines;
 
-board.grid[height][width]; 
+int k = 0; 
 
-for (int j = 0; j < height; j++){
+for (int i = 0; i < height; i++){   
+   for(int j = 0; j < width; j++){ 
+      b.grid[(k-j)/width][k - (i * width)] = inp[k]; //convert 1D string into 2D array
+      k++;
+   }
+}
+
+
+for (int j = 0; j < height; j++){    
    for(int i = 0; i < width; i++){ 
-      printf("%i", board.grid[j][i]);
+      printf("%c", b.grid[j][i]);
    }
    printf("\n");
 }
 printf("\n");
 
 
-} */
+return b;
+} 
 
 void test(void)
 {  
+   board b; 
    char inp[MAXSQ*MAXSQ+1];
    strcpy(inp, "11?010?011"); //too big
    assert(syntax_check(1, 3, 3, inp)==false);
@@ -156,6 +164,10 @@ void test(void)
 
    strcpy(inp, "11?0?X111l111X?11?11?X10?");     
    assert(syntax_check(3, 5, 5, inp)==false);   
+
+   //strcpy(inp, "00001001X");
+   //assert(syntax_check(1, 3, 3, inp)==true);
+   //b = make_board(1, 3, 3, inp);
 }
 
 
