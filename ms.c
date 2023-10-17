@@ -1,6 +1,6 @@
 #include "ms.h"
 #include <string.h>
-#define NDEBUG
+//#define NDEBUG
 #include <assert.h>
 
 //remember to account for out of bounds
@@ -10,6 +10,7 @@ int num_char(unsigned width, unsigned height, unsigned len);
 int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1]);
 int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1]);
 unsigned num_mines_b(unsigned width, unsigned height, board b);
+board moore_count(unsigned width, unsigned height, board b); //rename function
 
 board solve_board(board b)
 {
@@ -17,61 +18,10 @@ board solve_board(board b)
 unsigned width = b.w; 
 unsigned height = b.h; 
 unsigned totmines = b.totmines;
-unsigned cnt = 0;
 
    if(num_mines_b(width, height, b)==totmines){
       printf("Applying rule 1...\n");
-      for(unsigned row = 0; row < height; row++){    
-         for(unsigned col = 0; col < width; col++){ 
-            if(b.grid[row][col] == UNK){
-               unsigned row_unk = row;
-               unsigned col_unk = col;
-               char N = b.grid[row-1][col];
-               //printf("N %c\n", N);
-               char S = b.grid[row+1][col];
-               //printf("S %c\n", S);
-               char W = b.grid[row][col-1];
-               //printf("W %c\n", W);
-               char E = b.grid[row][col+1];
-               //printf("E %c\n", E);
-               char NW = b.grid[row-1][col-1];
-               //printf("NW %c\n", NW);
-               char NE = b.grid[row-1][col+1];
-               //printf("NE %c\n", NE);
-               char SW = b.grid[row+1][col-1];
-               //printf("SW %c\n", SW);
-               char SE = b.grid[row+1][col+1];
-               //printf("SE %c\n", SE);
-                  if(N == MINE){ //change to switch statement? 
-                     cnt++;
-                  }
-                  if(S == MINE){
-                     cnt++;
-                  }
-                  if(W == MINE){
-                     cnt++;
-                  }
-                  if(E == MINE){
-                     cnt++;
-                  }
-                  if(NW == MINE){
-                     cnt++;
-                  }
-                  if(NE == MINE){
-                     cnt++;
-                  }
-                  if(SW == MINE){
-                     cnt++;
-                  }
-                  if(SE == MINE){
-                     cnt++;
-                  }
-               printf("Mine count %u\n", cnt);
-               b.grid[row_unk][col_unk] = cnt+'0';
-            }
-         }
-      }
-                 
+      b = moore_count(width, height, b);
    }
 
 for(unsigned row = 0; row < height; row++){    
@@ -214,6 +164,66 @@ unsigned cnt = 0;
    } 
 
 return cnt;
+}
+
+board moore_count(unsigned width, unsigned height, board b) //why does this cause a segmentation fault when it hits an UNK for the 2nd time
+{
+int w = (int) width;
+int h = (int) height;
+int cnt = 0;
+for(int row = 0; row < h; row++){    
+         for(int col = 0; col < w; col++){ 
+            if(b.grid[row][col] == UNK){
+               int row_unk = row;
+               int col_unk = col;
+                  if(row - 1 >= 0 && row < h && col - 1 >= 0 && col < w){
+                     char N = b.grid[row-1][col];
+                     //printf("N %c\n", N);
+                     char S = b.grid[row+1][col];
+                     //printf("S %c\n", S);
+                     char W = b.grid[row][col-1];
+                     //printf("W %c\n", W);
+                     char E = b.grid[row][col+1];
+                     //printf("E %c\n", E);
+                     char NW = b.grid[row-1][col-1];
+                     //printf("NW %c\n", NW);
+                     char NE = b.grid[row-1][col+1];
+                     //printf("NE %c\n", NE);
+                     char SW = b.grid[row+1][col-1];
+                     //printf("SW %c\n", SW);
+                     char SE = b.grid[row+1][col+1];
+                     //printf("SE %c\n", SE); 
+                        if(N == MINE){ //change to switch statement? 
+                           cnt++;
+                        }
+                        if(S == MINE){
+                           cnt++;
+                        }
+                        if(W == MINE){
+                           cnt++;
+                        }
+                        if(E == MINE){
+                           cnt++;
+                        }
+                        if(NW == MINE){
+                           cnt++;
+                        }
+                        if(NE == MINE){
+                           cnt++;
+                        }
+                        if(SW == MINE){
+                           cnt++;
+                        }
+                        if(SE == MINE){
+                           cnt++;
+                        }
+                     printf("Mine count %u\n", cnt);
+                     b.grid[row_unk][col_unk] = cnt+'0';
+                  }  
+              }
+          }
+      }
+return b;
 }
 
 void test(void)
