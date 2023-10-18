@@ -1,14 +1,16 @@
 #include "ms.h"
 #include <string.h>
+#define NDEBUG
 #include <assert.h>
 
+//why are some things ints and some unsigned?
 int num_char(unsigned width, unsigned height, unsigned len);
 int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1]);
 int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1]);
 unsigned num_mines_b(unsigned width, unsigned height, board b);
 board moore_count_rule_1(unsigned width, unsigned height, char position, char find, board b); //rename function - returns board
-unsigned moore_count_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, char find, board b); //returns count 
 board apply_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, board b);
+unsigned moore_neighbour_cnt(unsigned width, unsigned height, unsigned row, unsigned col, char find, board b);
 
 board solve_board(board b)
 {
@@ -21,10 +23,10 @@ unsigned totmines = b.totmines;
       for(unsigned col = 0; col < width; col++){ 
          if(b.grid[row][col] != MINE && b.grid[row][col] != UNK){ //i.e. if it's a number 
             unsigned num = b.grid[row][col];
-            unsigned unk_count = moore_count_rule_2(width, height, row, col, UNK, b);
-            unsigned mine_count = moore_count_rule_2(width, height, row, col, MINE, b);
+            unsigned unk_count = moore_neighbour_cnt(width, height, row, col, UNK, b); 
+            unsigned mine_count = moore_neighbour_cnt(width, height, row, col, MINE, b);
             //printf("num %c, unk_count %u, mine_count %u\n", num, unk_count, mine_count);
-               if(num - '0' == unk_count + mine_count){ // - '0' to convert from ASCII value to number
+               if(num - '0' == unk_count + mine_count){ // - '0' to convert from bad ASCII number we don't know about
                   b = apply_rule_2(width, height, row, col, b);   
                } 
            }
@@ -74,7 +76,6 @@ int k = 0;
       }
    }
 }
-
 
 bool syntax_check(unsigned totmines, unsigned width, unsigned height, char inp[MAXSQ*MAXSQ+1])
 {
@@ -184,129 +185,19 @@ return cnt;
 
 board moore_count_rule_1(unsigned width, unsigned height, char position, char find, board b) 
 {
-int w = (int) width;
-int h = (int) height;
 int cnt= 0;
-for(int row = 0; row < h; row++){    
-         for(int col = 0; col < w; col++){ 
+for(unsigned row = 0; row < height; row++){    
+         for(unsigned col = 0; col < width; col++){ 
             if(b.grid[row][col] == position){
-               int row_unk = row;
-               int col_unk = col;
-                    if(row>0){
-                     char N = b.grid[row-1][col]; 
-                       if(N == find){  
-                           cnt++;
-                        }
-                     }
-                     if(row<h-1){   
-                     char S = b.grid[row+1][col];
-                           if(S == find){
-                           cnt++;
-                        }
-                     }
-                     if(col>0){
-                     char W = b.grid[row][col-1];
-                     if(W == find){
-                           cnt++;
-                        }
-                     }
-                     if(col < w-1 ){
-                     char E = b.grid[row][col+1];
-                       if(E == find){
-                           cnt++;
-                        }
-                     }
-                     if(row> 0 && col >0){
-                     char NW = b.grid[row-1][col-1];
-                     if(NW == find){
-                           cnt++;
-                        }
-                     }
-                      if(row>0 && col<w-1){
-                     char NE = b.grid[row-1][col+1];
-                        if(NE == find){
-                           cnt++;
-                        }
-                     }
-                     if(row< h-1 && col_unk > 0){
-                     char SW = b.grid[row+1][col-1];
-                      if(SW == find){
-                           cnt++;
-                        }
-                     }
-                     if(row < h-1 && col_unk < w-1){
-                     char SE = b.grid[row+1][col+1];
-                        if(SE == find){
-                           cnt++;
-                        }
-                     }
-                     b.grid[row_unk][col_unk] = cnt+'0'; 
+               unsigned row_unk = row;
+               unsigned col_unk = col;
+                     cnt = moore_neighbour_cnt(width, height, row, col, find, b); //this isn't working
+                     b.grid[row_unk][col_unk] = cnt+'0'; //could this just be row and col?
                      cnt = 0;  //reset counter 
               }
           }
       }
 return b;
-}
-
-unsigned moore_count_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, char find, board b)
-{
-
-int w = (int) width;
-int h = (int) height;
-int r = (int) row;
-int c = (int) col;
-int cnt= 0;
-            if(b.grid[r][c]){
-                    if(r>0){   // can I simplify this bounds checking and/or move it out to a function? 
-                     char N = b.grid[r-1][c]; // can these if statements be switch? 
-                       if(N == find){  //could N S E W directions be an enumerated type?
-                           cnt++;
-                        }
-                     }
-                     if(r<h-1){   
-                     char S = b.grid[r+1][c];
-                           if(S == find){
-                           cnt++;
-                        }
-                     }
-                     if(c>0){
-                     char W = b.grid[r][c-1];
-                     if(W == find){
-                           cnt++;
-                        }
-                     }
-                     if(c < w-1 ){
-                     char E = b.grid[r][c+1];
-                       if(E == find){
-                           cnt++;
-                        }
-                     }
-                     if(r> 0 && c >0){
-                     char NW = b.grid[r-1][c-1];
-                     if(NW == find){
-                           cnt++;
-                        }
-                     }
-                      if(r>0 && c<w-1){
-                     char NE = b.grid[r-1][c+1];
-                        if(NE == find){
-                           cnt++;
-                        }
-                     }
-                     if(r< h-1 && c > 0){
-                     char SW = b.grid[r+1][c-1];
-                      if(SW == find){
-                           cnt++;
-                        }
-                     }
-                     if(r < h-1 && c < w-1){
-                     char SE = b.grid[r+1][c+1];
-                        if(SE == find){
-                           cnt++;
-                        }
-                     }
-              }
-return (unsigned) cnt;
 }
 
 board apply_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, board b)
@@ -364,10 +255,75 @@ board apply_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, 
 return b; 
 }
 
+unsigned moore_neighbour_cnt(unsigned row, unsigned col, unsigned height, unsigned width, char find, board b)
+{ 
+printf("row: %u, col: %u, height: %u, width: %u, find: %c\n", row, col, height, width, find); 
+int cnt = 0;
+                    if(row>0){   
+                     char N = b.grid[row-1][col]; 
+                       if(N == find){  
+                           cnt++;
+                           printf("Hello N\n");
+                        }
+                     }
+                     if(row<height-1){   
+                     char S = b.grid[row+1][col];
+                           if(S == find){
+                           cnt++;
+                           printf("Hello S\n");
+                        }
+                     }
+                     if(col>0){
+                     char W = b.grid[row][col-1];
+                     if(W == find){
+                           cnt++;
+                           printf("Hello W\n");
+                        }
+                     }
+                     if(col < width-1 ){
+                     char E = b.grid[row][col+1];
+                       if(E == find){
+                           cnt++;
+                           printf("Hello E\n");
+                        }
+                     }
+                     if(row> 0 && col >0){
+                     char NW = b.grid[row-1][col-1];
+                     if(NW == find){
+                           cnt++;
+                           printf("Hello NW\n");
+                        }
+                     }
+                      if(row>0 && col<width-1){
+                     char NE = b.grid[row-1][col+1];
+                        if(NE == find){
+                           cnt++;
+                           printf("Hello NE\n");
+                        }
+                     }
+                     if(row< height-1 && col > 0){
+                     char SW = b.grid[row+1][col-1];
+                      if(SW == find){
+                           cnt++;
+                           printf("Hello SW\n");
+                        }
+                     }
+                     if(row < height-1 && col < width-1){
+                     char SE = b.grid[row+1][col+1];
+                        if(SE == find){
+                           cnt++;
+                           printf("Hello SE\n");
+                        }
+                 }
+printf("cnt in moore_neighbour_cnt: %i\n", cnt);
+return (unsigned) cnt; 
+}
+
 void test(void)
 {   
    board b;
    char inp[MAXSQ*MAXSQ+1];
+
    // Unknowns
    strcpy(inp, "XXX?XX535XX303X?535XXX??X");
    assert(syntax_check(16, 5, 5, inp)==true);
@@ -444,17 +400,18 @@ void test(void)
    board2str(inp, b);
    assert(num_mines_b(5, 5, b)==16);
 
-   // moore_count_rule_2 '?' 
+   // moore_neighbour_cnt '?' 
    strcpy(inp, "0111013X311XXX113?3101110");
    assert(syntax_check(4, 5, 5, inp)==true);
    b = make_board(4, 5, 5, inp);
-   assert(moore_count_rule_2(5, 5, 3, 1, '?', b)==1);
+   assert(moore_neighbour_cnt(5, 5, 3, 1, '?', b)==1);
    
-   // moore_count_rule_2 'X' 
+   // moore_neighbour_cnt 'X' 
    strcpy(inp, "0111013X311XXX113?3101110");
    assert(syntax_check(4, 5, 5, inp)==true);
    b = make_board(4, 5, 5, inp);
-   assert(moore_count_rule_2(5, 5, 3, 1, 'X', b)==2);
+   assert(moore_neighbour_cnt(5, 5, 3, 1, 'X', b)==2);
+// unsigned width, unsigned height, unsigned row, unsigned col, char find, board b
 
    // Rule 2 : 5x5 with 4 mines, 1 unknown 
    strcpy(inp, "0111013X311XXX113?3101110");
@@ -471,7 +428,7 @@ void test(void)
    b = solve_board(b);
    board2str(inp, b);
    assert(strcmp(inp, "111001X21012X21012X100111")==0);
-   
+
    //add lots more testing and take out any redundant tests
  
 }
