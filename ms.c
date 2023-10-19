@@ -184,64 +184,27 @@ return cnt;
 
 board moore_count_rule_1(unsigned width, unsigned height, char position, char find, board b) 
 {
-int w = (int) width;
-int h = (int) height;
+
 int cnt= 0;
-for(int row = 0; row < h; row++){    
-         for(int col = 0; col < w; col++){ 
+for(unsigned row = 0; row < height; row++){    
+         for(unsigned col = 0; col < width; col++){ 
             if(b.grid[row][col] == position){
-               int row_unk = row;
-               int col_unk = col;
-                    if(row>0){
-                     char N = b.grid[row-1][col]; 
-                       if(N == find){  
-                           cnt++;
+               unsigned row_unk = row;
+               unsigned col_unk = col;
+                    for(int j = row-1; j < (int)row + 2 ; ++j){
+                        for(int i = col-1; i < (int)col + 2; ++i){
+                              if(i >= 0 && j >= 0 && i< (int)width && j<(int)height){
+                                 if (!((i == (int) col) && (j == (int)row))) {
+                                    int N = b.grid[j][i];
+                                    if(N == find){
+                                       cnt++;
+                                    }
+                                 }
+                              }
                         }
-                     }
-                     if(row<h-1){   
-                     char S = b.grid[row+1][col];
-                           if(S == find){
-                           cnt++;
-                        }
-                     }
-                     if(col>0){
-                     char W = b.grid[row][col-1];
-                     if(W == find){
-                           cnt++;
-                        }
-                     }
-                     if(col < w-1 ){
-                     char E = b.grid[row][col+1];
-                       if(E == find){
-                           cnt++;
-                        }
-                     }
-                     if(row> 0 && col >0){
-                     char NW = b.grid[row-1][col-1];
-                     if(NW == find){
-                           cnt++;
-                        }
-                     }
-                      if(row>0 && col<w-1){
-                     char NE = b.grid[row-1][col+1];
-                        if(NE == find){
-                           cnt++;
-                        }
-                     }
-                     if(row< h-1 && col_unk > 0){
-                     char SW = b.grid[row+1][col-1];
-                      if(SW == find){
-                           cnt++;
-                        }
-                     }
-                     if(row < h-1 && col_unk < w-1){
-                     char SE = b.grid[row+1][col+1];
-                        if(SE == find){
-                           cnt++;
-                        }
-                     }
+                    }
                      b.grid[row_unk][col_unk] = cnt+'0'; 
-                     cnt = 0;  //reset counter 
+                     cnt = 0;
               }
           }
       }
@@ -250,117 +213,38 @@ return b;
 
 unsigned moore_count_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, char find, board b)
 {
-
-int w = (int) width;
-int h = (int) height;
-int r = (int) row;
-int c = (int) col;
-int cnt= 0;
-            if(b.grid[r][c]){
-                    if(r>0){   // can I simplify this bounds checking and/or move it out to a function? 
-                     char N = b.grid[r-1][c]; // can these if statements be switch? 
-                       if(N == find){  //could N S E W directions be an enumerated type?
-                           cnt++;
+unsigned cnt= 0;
+            
+                    for(int j = row-1; j < (int)row + 2 ; ++j){
+                        for(int i = col-1; i < (int)col + 2; ++i){
+                              if(i >= 0 && j >= 0 && i< (int)width && j<(int)height){
+                                 if (!((i == (int) col) && (j == (int)row))) {
+                                    int N = b.grid[j][i];
+                                    if(N == find){
+                                       cnt++;
+                                    }
+                                 }
+                              }
                         }
-                     }
-                     if(r<h-1){   
-                     char S = b.grid[r+1][c];
-                           if(S == find){
-                           cnt++;
-                        }
-                     }
-                     if(c>0){
-                     char W = b.grid[r][c-1];
-                     if(W == find){
-                           cnt++;
-                        }
-                     }
-                     if(c < w-1 ){
-                     char E = b.grid[r][c+1];
-                       if(E == find){
-                           cnt++;
-                        }
-                     }
-                     if(r> 0 && c >0){
-                     char NW = b.grid[r-1][c-1];
-                     if(NW == find){
-                           cnt++;
-                        }
-                     }
-                      if(r>0 && c<w-1){
-                     char NE = b.grid[r-1][c+1];
-                        if(NE == find){
-                           cnt++;
-                        }
-                     }
-                     if(r< h-1 && c > 0){
-                     char SW = b.grid[r+1][c-1];
-                      if(SW == find){
-                           cnt++;
-                        }
-                     }
-                     if(r < h-1 && c < w-1){
-                     char SE = b.grid[r+1][c+1];
-                        if(SE == find){
-                           cnt++;
-                        }
-                     }
-              }
-return (unsigned) cnt;
+                    }
+return cnt;
 }
 
 board apply_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, board b)
-{
+{   
                      printf("Applying Rule 2...\n");
-                     if(row>0){   // can I simplify this bounds checking and/or move it out to a function? 
-                     char N = b.grid[row-1][col]; // can these if statements be switch? 
-                       if(N == UNK){  //could N S E W directions be an enumerated type?
-                           b.grid[row-1][col] = MINE;
-                                                      //if I have time, convert all these if statements into 2 nested loops
-                           }
-                     }
-                     if(row<height-1){   
-                     char S = b.grid[row+1][col];
-                        if(S == UNK){
-                           b.grid[row+1][col] = MINE;
+                   for(int j = row-1; j < (int)row + 2 ; ++j){
+                        for(int i = col-1; i < (int)col + 2; ++i){
+                              if(i >= 0 && j >= 0 && i< (int)width && j<(int)height){
+                                 if (!((i == (int) col) && (j == (int)row))) {
+                                    int N = b.grid[j][i];
+                                    if(N == UNK){
+                                       b.grid[j][i] = MINE;
+                                    }
+                                 }
+                              }
                         }
-                     }
-                     if(col>0){
-                     char W = b.grid[row][col-1];
-                        if(W == UNK){
-                           b.grid[row][col-1] = MINE;
-                        }
-                     }
-                     if(col < width-1 ){
-                     char E = b.grid[row][col+1];
-                       if(E == UNK){
-                           b.grid[row][col+1] = MINE;
-                        }
-                     }
-                     if(row> 0 && col >0){
-                     char NW = b.grid[row-1][col-1];
-                     if(NW == UNK){
-                           b.grid[row-1][col-1] = MINE;
-                        }
-                     }
-                      if(row>0 && col<width-1){
-                     char NE = b.grid[row-1][col+1];
-                        if(NE == UNK){
-                           b.grid[row-1][col+1] = MINE;
-                        }
-                     }
-                     if(row< height-1 && col > 0){
-                     char SW = b.grid[row+1][col-1];
-                      if(SW == UNK){
-                           b.grid[row+1][col-1] = MINE;
-                        }
-                     }
-                     if(row < height-1 && col < width-1){
-                     char SE = b.grid[row+1][col+1];
-                        if(SE == UNK){
-                           b.grid[row+1][col+1] = MINE;
-                        }
-                     }
+                    }
 return b; 
 }
 
@@ -368,6 +252,7 @@ void test(void)
 {   
    board b;
    char inp[MAXSQ*MAXSQ+1];
+
    // Unknowns
    strcpy(inp, "XXX?XX535XX303X?535XXX??X");
    assert(syntax_check(16, 5, 5, inp)==true);
@@ -449,12 +334,25 @@ void test(void)
    assert(syntax_check(4, 5, 5, inp)==true);
    b = make_board(4, 5, 5, inp);
    assert(moore_count_rule_2(5, 5, 3, 1, '?', b)==1);
-   
+ 
    // moore_count_rule_2 'X' 
    strcpy(inp, "0111013X311XXX113?3101110");
    assert(syntax_check(4, 5, 5, inp)==true);
    b = make_board(4, 5, 5, inp);
    assert(moore_count_rule_2(5, 5, 3, 1, 'X', b)==2);
+   
+   //moore_count_rule_2 'X' edge
+   strcpy(inp, "0111013X311XXX113?3101110");
+   assert(syntax_check(4, 5, 5, inp)==true);
+   b = make_board(4, 5, 5, inp);
+   assert(moore_count_rule_2(5, 5, 0, 0, 'X', b)==0);
+   
+    //moore_count_rule_2 'X' edge
+   strcpy(inp, "0111013X311XXX113?3101110");
+   assert(syntax_check(4, 5, 5, inp)==true);
+   b = make_board(4, 5, 5, inp);
+   //printf("%i\n", moore_count_rule_2(5, 5, 0, 2, 'X', b));
+   assert(moore_count_rule_2(5, 5, 0, 2, 'X', b)==1);
 
    // Rule 2 : 5x5 with 4 mines, 1 unknown 
    strcpy(inp, "0111013X311XXX113?3101110");
@@ -471,7 +369,8 @@ void test(void)
    b = solve_board(b);
    board2str(inp, b);
    assert(strcmp(inp, "111001X21012X21012X100111")==0);
-   
+ 
    //add lots more testing and take out any redundant tests
  
 }
+
