@@ -2,74 +2,56 @@
 #include <string.h>
 #include <assert.h>
 
-int num_char(unsigned width, unsigned height, unsigned len);
-int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1]);
+#define CHAR_DIFF '0'
+#define MOORE_STEP 1
+#define STR_CONST 1
+#define LOW_BOUND 0
+
+int str_len_w_h(unsigned width, unsigned height, unsigned len); //compare string len & array width, height
+int char_in_set(unsigned len, char inp[MAXSQ*MAXSQ+1]); //check chars are in allowed set
 int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1]);
 unsigned num_mines_board(unsigned width, unsigned height, board b);
-board rule_1_board(unsigned width, unsigned height, char cell_val, char find, board b); 
-unsigned moore_count(unsigned width, unsigned height, unsigned row, unsigned col, char find, board b);
+unsigned moore_count(unsigned width, unsigned height, unsigned row, unsigned col, char find_val, board b);
+board rule_1_board(unsigned width, unsigned height, char cell_val, char find_val, board b); 
 board apply_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, board b);
 
 board solve_board(board b)
 {
-unsigned width = b.w; 
-unsigned height = b.h; 
-unsigned totmines = b.totmines; 
+   unsigned width = b.w; 
+   unsigned height = b.h; 
+   unsigned totmines = b.totmines; 
 
-//rule 2
+   //rule 2
    for(unsigned row = 0; row < height; row++){    
       for(unsigned col = 0; col < width; col++){ 
-         if(b.grid[row][col] != MINE && b.grid[row][col] != UNK){ //i.e. if it's a number 
+         if(b.grid[row][col] != MINE && b.grid[row][col] != UNK){ //if value is number 
             unsigned num = b.grid[row][col];
             unsigned unk_count = moore_count(width, height, row, col, UNK, b);
             unsigned mine_count = moore_count(width, height, row, col, MINE, b);
-               if(num - '0' == unk_count + mine_count){ // - '0' to convert from ASCII value to number - typedef this const
+               if(num - CHAR_DIFF == unk_count + mine_count){ // convert char to unsigned int
                   b = apply_rule_2(width, height, row, col, b);   
                } 
-           }
-       }
-    }
-
-//temp print function - delete
-for(unsigned row = 0; row < height; row++){    
-      for(unsigned col = 0; col < width; col++){ 
-         printf("%c", b.grid[row][col]);
+         }
       }
-      printf("\n");
-   }
-   printf("\n");
-  
+   }  
 
-//rule 1 
-
+   //rule 1 
    if(num_mines_board(width, height, b)==totmines){
-      printf("Applying rule 1...\n");
       b = rule_1_board(width, height, UNK, MINE, b);
    }
-
-
-//temp print function - delete
-for(unsigned row = 0; row < height; row++){    
-      for(unsigned col = 0; col < width; col++){ 
-         printf("%c", b.grid[row][col]);
-      }
-      printf("\n");
-   }
-   printf("\n");
-  
-return b;
+   return b;
 }
 
 void board2str(char s[MAXSQ*MAXSQ+1], board b)
 {
-int width = b.w;
-int height = b.h; 
+   int width = b.w;
+   int height = b.h; 
 
-int k = 0; 
-   for(int i = 0; i < height; i++){   
-      for(int j = 0; j < width; j++){ 
-         s[k] = b.grid[(k-j)/width][k - i * width];
-         k++;
+   int str_index = 0; 
+   for(int row = 0; row < height; row++){   
+      for(int col = 0; col < width; col++){ 
+         s[str_index] = b.grid[(str_index-col)/width][str_index - row * width]; //convert 2D array to string
+         str_index++;
       }
    }
 }
@@ -77,30 +59,26 @@ int k = 0;
 
 bool syntax_check(unsigned totmines, unsigned width, unsigned height, char inp[MAXSQ*MAXSQ+1])
 {
-unsigned len = strlen(inp);
-unsigned num_char_rtn = num_char(width, height, len);
-unsigned char_set_rtn = char_set(len, inp);
-unsigned num_mines_rtn = num_mines_str(len, totmines, inp);
+   unsigned len = strlen(inp);
+   unsigned str_len_w_h_rtn = str_len_w_h(width, height, len);
+   unsigned char_in_set_rtn = char_in_set(len, inp);
+   unsigned num_mines_rtn = num_mines_str(len, totmines, inp);
 
-if(num_char_rtn != 0 || char_set_rtn != 0 || num_mines_rtn != 0){
-   return false;
+   if(str_len_w_h_rtn != 0 || char_in_set_rtn != 0 || num_mines_rtn != 0){
+      return false;
    }
-else{
-   return true;
+   else{
+      return true;
    }
-
 }
 
 board make_board(int totmines, int width, int height, char inp[MAXSQ*MAXSQ+1])
 { 
-//use unsigned int instead of int
-
-board b; 
-b.w = width; 
-b.h = height; 
-b.totmines = totmines;
-
-int str_index = 0; 
+   board b; 
+   b.w = width; 
+   b.h = height; 
+   b.totmines = totmines;
+   int str_index = 0; 
 
    for(int row = 0; row < height; row++){   
       for(int col = 0; col < width; col++){ 
@@ -108,14 +86,12 @@ int str_index = 0;
          str_index++;
       }
    }
-
-return b;
+   return b;
 } 
 
-int num_char(unsigned width, unsigned height, unsigned len)
+int str_len_w_h(unsigned width, unsigned height, unsigned len)
 {
-// Make sure number of characters in string == width*height
-
+   // Make sure number of characters in string == width*height
    if(len != width * height){
       return 1;
    }
@@ -124,7 +100,7 @@ int num_char(unsigned width, unsigned height, unsigned len)
    }
 }
 
-int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1])
+int char_in_set(unsigned len, char inp[MAXSQ*MAXSQ+1])
 {
    // Ensure only characters are from the set:   012345678?X
    unsigned cnt = 0; 
@@ -141,20 +117,20 @@ int char_set(unsigned len, char inp[MAXSQ*MAXSQ+1])
       if(inp[i] == '9'){
          cnt++;
       }
-    }
-if(cnt > 0){
-   return 1;
    }
-else{
-   return 0;
+   if(cnt > 0){
+      return 1;
+   }
+   else{
+      return 0;
    } 
 }
 
 int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
 {
-// Ensure mines in string <= totmines
+   // Ensure mines in string <= totmines
    unsigned cnt = 0;
-   for(unsigned i = 0; i < len + 1; i++){
+   for(unsigned i = 0; i < len + STR_CONST; i++){
       if(inp[i] == 'X'){
          cnt++;
       }
@@ -169,8 +145,7 @@ int num_mines_str(unsigned len, unsigned totmines, char inp[MAXSQ*MAXSQ+1])
 
 unsigned num_mines_board(unsigned width, unsigned height, board b) //compares mines in board with totmines
 {
-unsigned cnt = 0;
-
+   unsigned cnt = 0;
    for(unsigned row = 0; row < height; row++){    
       for(unsigned col = 0; col < width; col++){   
          if(b.grid[row][col] == MINE){
@@ -178,60 +153,57 @@ unsigned cnt = 0;
          }
       }
    } 
-return cnt;
+   return cnt;
 }
 
-board rule_1_board(unsigned width, unsigned height, char cell_val, char find, board b) 
+board rule_1_board(unsigned width, unsigned height, char cell_val, char find_val, board b) 
 {
-
-int cnt= 0;
-for(unsigned row = 0; row < height; row++){    
-         for(unsigned col = 0; col < width; col++){ 
-            if(b.grid[row][col] == cell_val){
-                     cnt = moore_count(width, height, row, col, find, b);
-                     b.grid[row][col] = cnt+'0'; 
-                     cnt = 0;
-              }
-          }
+   int cnt= 0;
+   for(unsigned row = 0; row < height; row++){    
+      for(unsigned col = 0; col < width; col++){ 
+         if(b.grid[row][col] == cell_val){
+            cnt = moore_count(width, height, row, col, find_val, b);
+            b.grid[row][col] = cnt+'0'; 
+            cnt = 0;
+         }
       }
-return b;
+   }
+   return b;
 }
 
-unsigned moore_count(unsigned width, unsigned height, unsigned row, unsigned col, char find, board b)
+unsigned moore_count(unsigned width, unsigned height, unsigned row, unsigned col, char find_val, board b)
 {
-unsigned cnt= 0;
-            
-                    for(int j = row-1; j < (int)row + 2 ; ++j){
-                        for(int i = col-1; i < (int)col + 2; ++i){
-                              if(i >= 0 && j >= 0 && i< (int)width && j<(int)height){
-                                 if (!((i == (int) col) && (j == (int)row))) {
-                                    int N = b.grid[j][i];
-                                    if(N == find){
-                                       cnt++;
-                                    }
-                                 }
-                              }
-                        }
-                    }
-return cnt;
+   unsigned cnt= 0;
+      for(int j = row - MOORE_STEP; j <= (int)row + MOORE_STEP ; ++j){
+         for(int i = col - MOORE_STEP; i <= (int)col + MOORE_STEP; ++i){
+            if(i >= LOW_BOUND && j >= LOW_BOUND && i< (int)width && j<(int)height){ //check array bounds
+               if(!((j == (int)row) && (i == (int) col))){
+                  int val = b.grid[j][i];
+                  if(val == find_val){
+                     cnt++;
+                  }
+               }
+            }
+         }
+      }
+   return cnt;
 }
 
 board apply_rule_2(unsigned width, unsigned height, unsigned row, unsigned col, board b)
 {   
-                     printf("Applying Rule 2...\n");
-                   for(int j = row-1; j < (int)row + 2 ; ++j){
-                        for(int i = col-1; i < (int)col + 2; ++i){
-                              if(i >= 0 && j >= 0 && i< (int)width && j<(int)height){
-                                 if (!((i == (int) col) && (j == (int)row))) {
-                                    int N = b.grid[j][i];
-                                    if(N == UNK){
-                                       b.grid[j][i] = MINE;
-                                    }
-                                 }
-                              }
-                        }
-                    }
-return b; 
+   for(int j = row - MOORE_STEP; j <= (int)row + MOORE_STEP ; ++j){
+      for(int i = col - MOORE_STEP; i <= (int)col + MOORE_STEP; ++i){
+         if(i >= LOW_BOUND && j >= LOW_BOUND && i< (int)width && j<(int)height){ //check array bounds
+            if (!((i == (int) col) && (j == (int)row))) {
+               int val = b.grid[j][i];
+               if(val == UNK){
+                  b.grid[j][i] = MINE;
+               }
+            }
+         }
+      }
+   }
+   return b; 
 }
 
 void test(void)
@@ -239,39 +211,39 @@ void test(void)
    board b;
    char inp[MAXSQ*MAXSQ+1];
     
-// NUM_CHAR
+// STR_LEN_W_H 
    
    // length = width * height 
-   assert(num_char(2, 2, 4)==0); 
+   assert(str_len_w_h(2, 2, 4)==0); 
    
    // length != width * height
-   assert(num_char(3, 3, 4)==1); 
+   assert(str_len_w_h(3, 3, 4)==1); 
 
-// CHAR_SET
+// CHAR_IN_SET
 
    //non-'X' letters
    strcpy(inp, "Q1ra1bl0X"); 
-   assert(char_set(9, inp)==1);
+   assert(char_in_set(9, inp)==1);
 
    //non-'?' punct
    strcpy(inp, "0)1@1./0X"); 
-   assert(char_set(9, inp)==1);
+   assert(char_in_set(9, inp)==1);
 
    //correct chars in string
    strcpy(inp, "?X012345678");
-   assert(char_set(11, inp)==0); 
+   assert(char_in_set(11, inp)==0); 
 
    //space in string
    strcpy(inp, " ");
-   assert(char_set(1, inp)==1); 
+   assert(char_in_set(1, inp)==1); 
    
    //null char in string
    strcpy(inp, "\0");
-   assert(char_set(1, inp)==1); 
+   assert(char_in_set(1, inp)==1); 
    
    //'9' in string
    strcpy(inp, "?X0123456789");
-   assert(char_set(12, inp)==1); 
+   assert(char_in_set(12, inp)==1); 
 
 // NUM_MINES_STR
 
@@ -474,4 +446,3 @@ void test(void)
    board2str(inp, b);
    assert(strcmp(inp, "1X223XX11110")==0);
 }
-
